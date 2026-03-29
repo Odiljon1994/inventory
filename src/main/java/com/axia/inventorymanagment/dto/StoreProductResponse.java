@@ -1,0 +1,34 @@
+package com.axia.inventorymanagment.dto;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Schema(description = "Product response for STORE role - excludes cost information")
+public class StoreProductResponse {
+
+    @Schema(description = "Unique SKU identifier")
+    private String skuId;
+
+    @Schema(description = "Name of the product")
+    private String productName;
+
+    @Schema(description = "Import route type")
+    private String importRouteTag;
+
+    @Schema(description = "Whether the product is active")
+    private Boolean isActive;
+
+    @Schema(description = "Creation timestamp")
+    private LocalDateTime createdAt;
+}
