@@ -41,10 +41,6 @@ public class ProductService {
                 .skuId(request.getSkuId())
                 .productName(request.getProductName())
                 .importRouteTag(request.getImportRouteTag())
-                .purchasePrice(request.getPurchasePrice())
-                .tariffRate(request.getTariffRate())
-                .avgUnitPrice(request.getAvgUnitPrice())
-                .lotPrice(request.getLotPrice())
                 .isActive(true)
                 .build();
 
@@ -108,10 +104,6 @@ public class ProductService {
                 .skuId(product.getSkuId())
                 .productName(product.getProductName())
                 .importRouteTag(product.getImportRouteTag())
-                .purchasePrice(product.getPurchasePrice())
-                .tariffRate(product.getTariffRate())
-                .avgUnitPrice(product.getAvgUnitPrice())
-                .lotPrice(product.getLotPrice())
                 .isActive(product.getIsActive())
                 .createdAt(product.getCreatedAt())
                 .build();

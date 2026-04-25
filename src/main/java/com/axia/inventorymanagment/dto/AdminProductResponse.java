@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -26,18 +25,6 @@ public class AdminProductResponse {
 
     @Schema(description = "Import route type")
     private String importRouteTag;
-
-    @Schema(description = "Purchase price")
-    private BigDecimal purchasePrice;
-
-    @Schema(description = "Tariff rate percentage")
-    private BigDecimal tariffRate;
-
-    @Schema(description = "Average unit price")
-    private BigDecimal avgUnitPrice;
-
-    @Schema(description = "Lot price")
-    private BigDecimal lotPrice;
 
     @Schema(description = "Whether the product is active")
     private Boolean isActive;

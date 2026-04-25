@@ -11,7 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,18 +31,6 @@ public class Product {
 
     @Column(name = "import_route_tag", nullable = false, length = 20)
     private String importRouteTag;
-
-    @Column(name = "purchase_price", precision = 15, scale = 2)
-    private BigDecimal purchasePrice;
-
-    @Column(name = "tariff_rate", precision = 5, scale = 2)
-    private BigDecimal tariffRate;
-
-    @Column(name = "avg_unit_price", precision = 15, scale = 2)
-    private BigDecimal avgUnitPrice;
-
-    @Column(name = "lot_price", precision = 15, scale = 2)
-    private BigDecimal lotPrice;
 
     @Column(name = "is_active")
     private Boolean isActive;

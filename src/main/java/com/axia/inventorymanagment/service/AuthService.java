@@ -14,10 +14,16 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AuthService {
+
+    private static final Set<String> VALID_ROLES = Set.of("admin", "staff", "member");
 
     private final UserRepository userRepository;
     private final StoreRepository storeRepository;
@@ -25,28 +31,45 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     public LoginResponse authenticate(LoginRequest request) {
-        log.info("Attempting login for user: {}", request.getUsername());
+        String identifier = request.getEmail() != null ? request.getEmail() : request.getUsername();
+        log.info("Attempting login for user: {}", identifier);
 
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> {
-                    log.warn("User not found: {}", request.getUsername());
-                    return new BadCredentialsException("Invalid username or password");
-                });
+        if (identifier == null || identifier.isBlank()) {
+            throw new BadCredentialsException("Username or email is required");
+        }
+
+        // Try to find user by email first, then by username
+        Optional<User> userOpt = Optional.empty();
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            userOpt = userRepository.findByEmail(request.getEmail());
+        }
+        if (userOpt.isEmpty() && request.getUsername() != null && !request.getUsername().isBlank()) {
+            userOpt = userRepository.findByUsername(request.getUsername());
+        }
+
+        User user = userOpt.orElseThrow(() -> {
+            log.warn("User not found: {}", identifier);
+            return new BadCredentialsException("Invalid credentials");
+        });
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            log.warn("Invalid password for user: {}", request.getUsername());
-            throw new BadCredentialsException("Invalid username or password");
+            log.warn("Invalid password for user: {}", identifier);
+            throw new BadCredentialsException("Invalid credentials");
         }
 
         if (!user.getIsActive()) {
-            log.warn("Inactive user attempted login: {}", request.getUsername());
+            log.warn("Inactive user attempted login: {}", identifier);
             throw new BadCredentialsException("Account is inactive");
         }
+
+        // Update last login timestamp
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
 
         String token = jwtUtil.generateToken(user);
         Integer storeId = user.getStore() != null ? user.getStore().getStoreId() : null;
 
-        log.info("Login successful for user: {}, role: {}", request.getUsername(), user.getRole());
+        log.info("Login successful for user: {}, role: {}", user.getUsername(), user.getRole());
 
         return LoginResponse.builder()
                 .token(token)
@@ -59,20 +82,30 @@ public class AuthService {
     public LoginResponse register(RegisterRequest request) {
         log.info("Attempting registration for user: {}", request.getUsername());
 
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+        // Validate username uniqueness
+        if (request.getUsername() != null && userRepository.existsByUsername(request.getUsername())) {
             log.warn("Username already exists: {}", request.getUsername());
             throw new IllegalArgumentException("Username already exists");
         }
 
-        if (!request.getRole().equals("ADMIN") && !request.getRole().equals("STORE")) {
-            throw new IllegalArgumentException("Role must be ADMIN or STORE");
+        // Validate email uniqueness
+        if (request.getEmail() != null && userRepository.existsByEmail(request.getEmail())) {
+            log.warn("Email already exists: {}", request.getEmail());
+            throw new IllegalArgumentException("Email already exists");
         }
 
-        if (request.getRole().equals("STORE") && request.getStoreId() == null) {
-            throw new IllegalArgumentException("Store ID is required for STORE role");
+        // Validate role
+        if (!VALID_ROLES.contains(request.getRole())) {
+            throw new IllegalArgumentException("Role must be one of: admin, staff, member");
         }
 
-        if (request.getRole().equals("ADMIN") && request.getStoreId() != null) {
+        // Staff role requires store assignment
+        if (request.getRole().equals("staff") && request.getStoreId() == null) {
+            throw new IllegalArgumentException("Store ID is required for staff role");
+        }
+
+        // Admin cannot be assigned to a store
+        if (request.getRole().equals("admin") && request.getStoreId() != null) {
             throw new IllegalArgumentException("Admin users cannot be assigned to a store");
         }
 
@@ -84,6 +117,7 @@ public class AuthService {
 
         User user = User.builder()
                 .username(request.getUsername())
+                .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .fullName(request.getFullName())
                 .role(request.getRole())

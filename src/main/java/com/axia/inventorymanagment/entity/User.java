@@ -27,6 +27,9 @@ public class User implements UserDetails {
     @Column(name = "username", unique = true, nullable = false, length = 100)
     private String username;
 
+    @Column(name = "email", unique = true, length = 255)
+    private String email;
+
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
@@ -44,15 +47,27 @@ public class User implements UserDetails {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
         if (this.isActive == null) {
             this.isActive = true;
         }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     @Override

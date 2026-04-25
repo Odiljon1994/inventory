@@ -39,13 +39,13 @@ public class ProductController {
     // ==================== ADMIN ENDPOINTS ====================
 
     @PostMapping("/admin/products")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Create a new product", description = "Creates a new product. Only accessible by ADMIN role.")
+    @PreAuthorize("hasRole('admin')")
+    @Operation(summary = "Create a new product", description = "Creates a new product. Only accessible by admin role.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Product created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request data"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - requires ADMIN role"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - requires admin role"),
             @ApiResponse(responseCode = "409", description = "Duplicate SKU ID or product name with same route")
     })
     public ResponseEntity<AdminProductResponse> createProduct(@Valid @RequestBody CreateProductRequest request) {
@@ -55,12 +55,12 @@ public class ProductController {
     }
 
     @GetMapping("/admin/products")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get all products for admin", description = "Retrieves all products including inactive ones. Only accessible by ADMIN role.")
+    @PreAuthorize("hasRole('admin')")
+    @Operation(summary = "Get all products for admin", description = "Retrieves all products including inactive ones. Only accessible by admin role.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Products retrieved successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - requires ADMIN role")
+            @ApiResponse(responseCode = "403", description = "Forbidden - requires admin role")
     })
     public ResponseEntity<List<AdminProductResponse>> getAllProductsForAdmin() {
         log.info("Received request to get all products for admin");
@@ -69,12 +69,12 @@ public class ProductController {
     }
 
     @GetMapping("/admin/products/{skuId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get product by SKU ID for admin", description = "Retrieves a specific product by SKU ID. Only accessible by ADMIN role.")
+    @PreAuthorize("hasRole('admin')")
+    @Operation(summary = "Get product by SKU ID for admin", description = "Retrieves a specific product by SKU ID. Only accessible by admin role.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Product retrieved successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - requires ADMIN role"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - requires admin role"),
             @ApiResponse(responseCode = "404", description = "Product not found")
     })
     public ResponseEntity<AdminProductResponse> getProductByIdForAdmin(@PathVariable String skuId) {
@@ -84,12 +84,12 @@ public class ProductController {
     }
 
     @DeleteMapping("/admin/products/{skuId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Deactivate a product", description = "Soft deletes a product by setting isActive to false. Only accessible by ADMIN role.")
+    @PreAuthorize("hasRole('admin')")
+    @Operation(summary = "Deactivate a product", description = "Soft deletes a product by setting isActive to false. Only accessible by admin role.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Product deactivated successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - requires ADMIN role"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - requires admin role"),
             @ApiResponse(responseCode = "404", description = "Product not found")
     })
     public ResponseEntity<Map<String, String>> deactivateProduct(@PathVariable String skuId) {
@@ -101,12 +101,12 @@ public class ProductController {
     // ==================== STORE ENDPOINTS ====================
 
     @GetMapping("/store/products")
-    @PreAuthorize("hasRole('STORE')")
-    @Operation(summary = "Get all active products for store", description = "Retrieves all active products without cost information. Only accessible by STORE role.")
+    @PreAuthorize("hasRole('staff')")
+    @Operation(summary = "Get all active products for store", description = "Retrieves all active products without cost information. Only accessible by staff role.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Products retrieved successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - requires STORE role")
+            @ApiResponse(responseCode = "403", description = "Forbidden - requires staff role")
     })
     public ResponseEntity<List<StoreProductResponse>> getAllProductsForStore() {
         log.info("Received request to get all products for store");
@@ -115,12 +115,12 @@ public class ProductController {
     }
 
     @GetMapping("/store/products/{skuId}")
-    @PreAuthorize("hasRole('STORE')")
-    @Operation(summary = "Get active product by SKU ID for store", description = "Retrieves a specific active product by SKU ID without cost information. Only accessible by STORE role.")
+    @PreAuthorize("hasRole('staff')")
+    @Operation(summary = "Get active product by SKU ID for store", description = "Retrieves a specific active product by SKU ID without cost information. Only accessible by staff role.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Product retrieved successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - requires STORE role"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - requires staff role"),
             @ApiResponse(responseCode = "404", description = "Product not found or inactive")
     })
     public ResponseEntity<StoreProductResponse> getProductByIdForStore(@PathVariable String skuId) {
