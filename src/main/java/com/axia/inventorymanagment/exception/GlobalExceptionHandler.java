@@ -63,6 +63,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(DeliveryNoteNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleDeliveryNoteNotFoundException(DeliveryNoteNotFoundException ex) {
+        log.warn("Delivery note not found: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
         log.warn("Invalid parameter: {}", ex.getMessage());
