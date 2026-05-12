@@ -2,6 +2,7 @@ package com.axia.inventorymanagment.security;
 
 import com.axia.inventorymanagment.entity.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -45,16 +46,19 @@ public class JwtUtil {
         return builder.signWith(secretKey, Jwts.SIG.HS256).compact();
     }
 
-    public boolean validateToken(String token) {
+    public String getValidationError(String token) {
         try {
-            Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token);
-            return true;
+            Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
+            return null;
+        } catch (ExpiredJwtException e) {
+            return "expired token";
         } catch (JwtException | IllegalArgumentException e) {
-            return false;
+            return "invalid token";
         }
+    }
+
+    public boolean validateToken(String token) {
+        return getValidationError(token) == null;
     }
 
     public String extractUsername(String token) {

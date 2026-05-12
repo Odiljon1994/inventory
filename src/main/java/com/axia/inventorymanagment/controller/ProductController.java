@@ -3,6 +3,7 @@ package com.axia.inventorymanagment.controller;
 import com.axia.inventorymanagment.dto.AdminProductResponse;
 import com.axia.inventorymanagment.dto.CreateProductRequest;
 import com.axia.inventorymanagment.dto.StoreProductResponse;
+import com.axia.inventorymanagment.dto.UpdateProductRequest;
 import com.axia.inventorymanagment.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -81,6 +83,24 @@ public class ProductController {
         log.info("Received request to get product with SKU: {} for admin", skuId);
         AdminProductResponse product = productService.getProductByIdForAdmin(skuId);
         return ResponseEntity.ok(product);
+    }
+
+    @PutMapping("/admin/products/{skuId}")
+    @PreAuthorize("hasRole('admin')")
+    @Operation(summary = "Update a product", description = "Updates productName, importRouteTag, and optionally isActive. skuId is immutable.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Product updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - requires admin role"),
+            @ApiResponse(responseCode = "404", description = "Product not found"),
+            @ApiResponse(responseCode = "409", description = "Product with same name and route already exists")
+    })
+    public ResponseEntity<AdminProductResponse> updateProduct(
+            @PathVariable String skuId,
+            @Valid @RequestBody UpdateProductRequest request) {
+        log.info("Received request to update product with SKU: {}", skuId);
+        return ResponseEntity.ok(productService.updateProduct(skuId, request));
     }
 
     @DeleteMapping("/admin/products/{skuId}")

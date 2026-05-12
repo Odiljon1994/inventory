@@ -3,6 +3,7 @@ package com.axia.inventorymanagment.service;
 import com.axia.inventorymanagment.dto.AdminProductResponse;
 import com.axia.inventorymanagment.dto.CreateProductRequest;
 import com.axia.inventorymanagment.dto.StoreProductResponse;
+import com.axia.inventorymanagment.dto.UpdateProductRequest;
 import com.axia.inventorymanagment.entity.Product;
 import com.axia.inventorymanagment.exception.DuplicateProductException;
 import com.axia.inventorymanagment.exception.DuplicateSkuIdException;
@@ -84,6 +85,34 @@ public class ProductService {
                     return new ProductNotFoundException("Product with SKU '" + skuId + "' not found");
                 });
         return mapToStoreResponse(product);
+    }
+
+    public AdminProductResponse updateProduct(String skuId, UpdateProductRequest request) {
+        log.info("Updating product with SKU: {}", skuId);
+        Product product = productRepository.findById(skuId)
+                .orElseThrow(() -> {
+                    log.warn("Product with SKU '{}' not found for update", skuId);
+                    return new ProductNotFoundException("Product with SKU '" + skuId + "' not found");
+                });
+
+        boolean nameOrRouteChanged = !product.getProductName().equals(request.getProductName())
+                || !product.getImportRouteTag().equals(request.getImportRouteTag());
+
+        if (nameOrRouteChanged && productRepository.existsByProductNameAndImportRouteTag(
+                request.getProductName(), request.getImportRouteTag())) {
+            log.warn("Product with name '{}' and route '{}' already exists", request.getProductName(), request.getImportRouteTag());
+            throw new DuplicateProductException("Product with same name and route already exists");
+        }
+
+        product.setProductName(request.getProductName());
+        product.setImportRouteTag(request.getImportRouteTag());
+        if (request.getIsActive() != null) {
+            product.setIsActive(request.getIsActive());
+        }
+
+        Product saved = productRepository.save(product);
+        log.info("Product with SKU '{}' updated successfully", skuId);
+        return mapToAdminResponse(saved);
     }
 
     public void deactivateProduct(String skuId) {
