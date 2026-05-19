@@ -27,7 +27,8 @@ public class MemberService {
 
     public MemberListResponse getMembers(int page, int limit, String search, Integer stageId) {
         PageRequest pageable = PageRequest.of(page - 1, limit);
-        Page<Member> memberPage = memberRepository.findWithFilters(stageId, search, pageable);
+        String searchPattern = (search != null && !search.isBlank()) ? "%" + search + "%" : null;
+        Page<Member> memberPage = memberRepository.findWithFilters(stageId, searchPattern, pageable);
 
         Integer totalMembers = (int) memberRepository.count();
         Integer totalPointsGranted = pointTransactionRepository.sumAllPositivePoints();
@@ -80,7 +81,8 @@ public class MemberService {
     }
 
     public String exportCsv(String search, Integer stageId) {
-        List<Member> members = memberRepository.findAllWithFilters(stageId, search);
+        String searchPattern = (search != null && !search.isBlank()) ? "%" + search + "%" : null;
+        List<Member> members = memberRepository.findAllWithFilters(stageId, searchPattern);
 
         StringBuilder csv = new StringBuilder("﻿");
         csv.append("Member ID,Name,Email,Points,Stage,Registration Date\n");

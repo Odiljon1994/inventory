@@ -16,18 +16,21 @@ public interface MemberRepository extends JpaRepository<Member, Integer> {
 
     Optional<Member> findByMemberCode(String memberCode);
 
-    @Query("SELECT m FROM Member m WHERE " +
-           "(:stageId IS NULL OR m.stage.stageId = :stageId) AND " +
-           "(:search IS NULL OR LOWER(m.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(m.memberCode) LIKE LOWER(CONCAT('%', :search, '%')))")
+    @Query(value = "SELECT * FROM members WHERE " +
+           "(:stageId IS NULL OR stage_id = :stageId) AND " +
+           "(:search IS NULL OR name ILIKE CAST(:search AS text) OR member_code ILIKE CAST(:search AS text))",
+           countQuery = "SELECT COUNT(*) FROM members WHERE " +
+           "(:stageId IS NULL OR stage_id = :stageId) AND " +
+           "(:search IS NULL OR name ILIKE CAST(:search AS text) OR member_code ILIKE CAST(:search AS text))",
+           nativeQuery = true)
     Page<Member> findWithFilters(@Param("stageId") Integer stageId,
                                  @Param("search") String search,
                                  Pageable pageable);
 
-    @Query("SELECT m FROM Member m WHERE " +
-           "(:stageId IS NULL OR m.stage.stageId = :stageId) AND " +
-           "(:search IS NULL OR LOWER(m.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(m.memberCode) LIKE LOWER(CONCAT('%', :search, '%')))")
+    @Query(value = "SELECT * FROM members WHERE " +
+           "(:stageId IS NULL OR stage_id = :stageId) AND " +
+           "(:search IS NULL OR name ILIKE CAST(:search AS text) OR member_code ILIKE CAST(:search AS text))",
+           nativeQuery = true)
     List<Member> findAllWithFilters(@Param("stageId") Integer stageId,
                                     @Param("search") String search);
 }
