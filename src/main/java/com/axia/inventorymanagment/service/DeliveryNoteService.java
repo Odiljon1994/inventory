@@ -35,7 +35,7 @@ public class DeliveryNoteService {
     private final InventoryStockLogRepository inventoryStockLogRepository;
 
     public List<DeliveryNoteListResponse> getDeliveryNotes(String status) {
-        return deliveryNoteRepository.findByStatusFilter(status)
+        return deliveryNoteRepository.findByStatusFilter(normalizeStatus(status))
                 .stream()
                 .map(this::mapToListResponse)
                 .collect(Collectors.toList());
@@ -55,7 +55,7 @@ public class DeliveryNoteService {
                 .noteCode(noteCode)
                 .toStore(store)
                 .fromUser(adminUser)
-                .status("pending")
+                .status("Shipping")
                 .build();
         note = deliveryNoteRepository.save(note);
 
@@ -109,7 +109,7 @@ public class DeliveryNoteService {
         DeliveryNote note = deliveryNoteRepository.findByNoteCode(noteCode)
                 .orElseThrow(() -> new DeliveryNoteNotFoundException("Delivery note " + noteCode + " not found"));
 
-        if ("received".equals(note.getStatus())) {
+        if ("Accepted".equals(note.getStatus())) {
             throw new IllegalArgumentException("Delivery note " + noteCode + " is already received");
         }
 
@@ -150,18 +150,27 @@ public class DeliveryNoteService {
         }
 
         LocalDateTime receivedAt = LocalDateTime.now();
-        note.setStatus("received");
+        note.setStatus("Accepted");
         note.setAcceptedAt(receivedAt);
         deliveryNoteRepository.save(note);
 
         return ReceiveDeliveryNoteResponse.builder()
                 .noteId(note.getNoteCode())
-                .status("received")
+                .status("Accepted")
                 .receivedAt(receivedAt)
                 .build();
     }
 
-    private String generateNoteCode() {
+    private String normalizeStatus(String status) {
+        if (status == null) return null;
+        return switch (status.toLowerCase()) {
+            case "shipping" -> "Shipping";
+            case "accepted" -> "Accepted";
+            default -> status;
+        };
+    }
+
+    private synchronized String generateNoteCode() {
         String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String prefix = "DN-" + dateStr + "-";
         List<String> latest = deliveryNoteRepository.findLatestNoteCodeByPrefix(prefix + "%", PageRequest.of(0, 1));
@@ -172,7 +181,7 @@ public class DeliveryNoteService {
         return prefix + String.format("%03d", sequence);
     }
 
-    private String generateLotCode(String dateStr) {
+    private synchronized String generateLotCode(String dateStr) {
         String prefix = "LOT-" + dateStr + "-";
         List<String> latest = lotRepository.findLatestLotCodeByPrefix(prefix + "%", PageRequest.of(0, 1));
         int sequence = 1;

@@ -46,6 +46,6 @@ public class DeliveryNote {
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) createdAt = LocalDateTime.now();
-        if (status == null) status = "pending";
+        if (status == null) status = "Shipping";
     }
 }

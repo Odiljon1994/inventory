@@ -1,5 +1,6 @@
 package com.axia.inventorymanagment.controller;
 
+import com.axia.inventorymanagment.dto.CreateMemberRequest;
 import com.axia.inventorymanagment.dto.MemberDetailResponse;
 import com.axia.inventorymanagment.dto.MemberListResponse;
 import com.axia.inventorymanagment.service.MemberService;
@@ -9,8 +10,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +31,19 @@ import java.time.format.DateTimeFormatter;
 public class MemberController {
 
     private final MemberService memberService;
+
+    @PostMapping
+    @PreAuthorize("hasRole('admin')")
+    @Operation(summary = "Create member", description = "Creates a new member. Member code is auto-generated.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Member created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - requires admin role")
+    })
+    public ResponseEntity<MemberDetailResponse> createMember(@Valid @RequestBody CreateMemberRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(memberService.createMember(request));
+    }
 
     @GetMapping
     @PreAuthorize("hasRole('admin')")

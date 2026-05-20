@@ -16,6 +16,9 @@ public interface MemberRepository extends JpaRepository<Member, Integer> {
 
     Optional<Member> findByMemberCode(String memberCode);
 
+    @Query("SELECT m.memberCode FROM Member m WHERE m.memberCode LIKE :prefix ORDER BY m.memberCode DESC")
+    List<String> findLatestMemberCodeByPrefix(@Param("prefix") String prefix, Pageable pageable);
+
     @Query(value = "SELECT * FROM members WHERE " +
            "(:stageId IS NULL OR stage_id = :stageId) AND " +
            "(:search IS NULL OR name ILIKE CAST(:search AS text) OR member_code ILIKE CAST(:search AS text))",

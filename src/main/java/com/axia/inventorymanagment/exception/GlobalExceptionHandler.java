@@ -2,6 +2,7 @@ package com.axia.inventorymanagment.exception;
 
 import com.axia.inventorymanagment.dto.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -68,6 +69,28 @@ public class GlobalExceptionHandler {
         log.warn("Delivery note not found: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        String cause = ex.getMostSpecificCause().getMessage();
+        log.warn("Data integrity violation: {}", cause);
+        String message;
+        HttpStatus status;
+        if (cause != null && (cause.contains("unique constraint") || cause.contains("duplicate key"))) {
+            message = "A record with this value already exists";
+            status = HttpStatus.CONFLICT;
+        } else if (cause != null && cause.contains("check constraint")) {
+            message = "Invalid value: does not match allowed values for this field";
+            status = HttpStatus.BAD_REQUEST;
+        } else if (cause != null && (cause.contains("not-null") || cause.contains("null value"))) {
+            message = "A required field is missing";
+            status = HttpStatus.BAD_REQUEST;
+        } else {
+            message = "Data integrity violation";
+            status = HttpStatus.CONFLICT;
+        }
+        return ResponseEntity.status(status).body(new ErrorResponse(status.value(), message));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
